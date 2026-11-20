@@ -1,0 +1,52 @@
+USE DATABASE SKYPOINTS;
+
+CREATE SCHEMA IF NOT EXISTS RAW;
+CREATE SCHEMA IF NOT EXISTS STG;
+CREATE SCHEMA IF NOT EXISTS CORE;
+
+CREATE OR REPLACE TABLE RAW.MEMBER_RAW (
+  record_type STRING, member_name STRING, member_id STRING,
+  enrollment_date STRING, last_flight_date STRING, tier_code STRING,
+  agent_name STRING, state STRING, country STRING,
+  dob STRING, is_active STRING,
+  file_name STRING, row_num NUMBER,
+  load_ts TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
+);
+
+CREATE OR REPLACE TABLE RAW.REDEMPTION_RAW (
+  payload VARIANT, file_name STRING,
+  load_ts TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
+);
+
+CREATE OR REPLACE TABLE STG.MEMBER_STG (
+  member_id STRING NOT NULL, member_name STRING NOT NULL,
+  enrollment_date DATE NOT NULL, last_flight_date DATE,
+  tier_code STRING, agent_name STRING, state STRING,
+  country_code STRING, dob DATE, is_active STRING,
+  age NUMBER, stale_member BOOLEAN,
+  dq_status STRING, file_name STRING, row_num NUMBER,
+  load_ts TIMESTAMP_NTZ
+);
+
+CREATE OR REPLACE TABLE STG.MEMBER_REJECTS (
+  member_id STRING, reject_reason STRING,
+  raw_record VARIANT, file_name STRING,
+  rejected_ts TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
+);
+
+CREATE OR REPLACE TABLE CORE.DIM_COUNTRY (
+  source_code STRING, iso2 STRING, country_name STRING
+);
+
+CREATE OR REPLACE TABLE CORE.MEMBER_CURRENT (
+  member_id STRING PRIMARY KEY, member_name STRING,
+  enrollment_date DATE, last_flight_date DATE, tier_code STRING,
+  agent_name STRING, state STRING, country_code STRING,
+  dob DATE, is_active STRING, age NUMBER, stale_member BOOLEAN,
+  last_feed_ts TIMESTAMP_NTZ
+);
+
+CREATE OR REPLACE TABLE CORE.MEMBER_IN LIKE CORE.MEMBER_CURRENT;
+CREATE OR REPLACE TABLE CORE.MEMBER_US LIKE CORE.MEMBER_CURRENT;
+CREATE OR REPLACE TABLE CORE.MEMBER_AU LIKE CORE.MEMBER_CURRENT;
+
